@@ -22,7 +22,7 @@ def clean_text(text: str) -> str:
 
 # ------------------- Load artifacts -------------------
 @st.cache_resource
-def load_artifacts(vec_path="vectorizer.pkl", model_path="model.pkl"):
+def load_artifacts(vec_path="models/vectorizer.pkl", model_path="models/model.pkl"):
     if not os.path.exists(vec_path) or not os.path.exists(model_path):
         raise FileNotFoundError(f"Ensure {vec_path} and {model_path} exist in the app folder.")
     vec = pickle.load(open(vec_path, "rb"))
