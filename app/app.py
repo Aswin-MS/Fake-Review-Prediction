@@ -1,4 +1,3 @@
-# streamlit_app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -59,12 +58,9 @@ except Exception as e:
     st.error(f"Error loading artifacts: {e}")
     st.stop()
 
-# ------------------- UI -------------------
-import streamlit as st
-
+#webpage
 st.markdown("""
 <style>
-/* base title style (gradient text) */
 .title {
   font-size: 48px;
   font-weight: 800;
@@ -72,36 +68,28 @@ st.markdown("""
   background: linear-gradient(90deg, #ff4b4b, #ffae00, #00c6ff, #7d2cff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  white-space: nowrap;       /* keep in one line for typing effect */
-  overflow: hidden;          /* hide overflowing text while typing */
+  white-space: nowrap;       
+  overflow: hidden;          
   display: inline-block;
 }
 
-/* typing + cursor */
+
 .typing {
-  border-right: 4px solid #00c3ff;   /* the cursor */
-  /* two animations:
-     1) typing - grows width with steps and at 100% makes cursor transparent (disappears)
-     2) blink  - makes cursor blink during typing
-     `forwards` ensures final keyframe (cursor transparent) sticks */
+  border-right: 4px solid #00c3ff;  
   animation: typing 3s steps(22) forwards, blink .6s step-end infinite;
-  box-sizing: content-box; /* ensure width measured on content */
+  box-sizing: content-box; 
 }
 
-/* typing animation: grow from zero width to full.
-   at 100% we set the cursor (border-right-color) to transparent so it disappears */
 @keyframes typing {
   from { width: 0ch; border-right-color: #00c3ff; }
-  99%  { border-right-color: #00c3ff; } /* keep cursor visible during typing */
-  100% { width: 17ch; border-right-color: transparent; } /* final: full width + hide cursor */
+  99%  { border-right-color: #00c3ff; } 
+  100% { width: 17ch; border-right-color: transparent; } 
 }
 
-/* blink during typing (will be overridden by typing at the end) */
 @keyframes blink {
   70% { border-right-color: transparent; }
 }
 
-/* center container to keep title centered on the page */
 .title-wrap {
   display: flex;
   justify-content: center;
@@ -128,44 +116,43 @@ with st.sidebar:
             f"Reviews with probability of fake less than **{threshold:.2f}** will be marked as **Genuine**.")
     show_probs = st.sidebar.checkbox("Show probabilities", value=True)
 
-# Single review
-st.header("Single review prediction")
+# Review(user)
+st.header("Predict a Single Review")
 text_input = st.text_area("Enter a review here:", height=100)
 
-col1, col2 = st.columns([1,1])
-with col1:
-    if st.button("Predict single review"):
-        if not text_input.strip():
-            st.warning("Please enter a review text.")
-        else:
-            cleaned = clean_text(text_input)
-            X = vec.transform([cleaned])
-            try:
-                probs = model.predict_proba(X)[0]
 
-                prob_fake = float(probs[0]) if probs.shape[0] > 1 else None
-            except Exception:
-                prob_fake = None
+if st.button("Predict single review"):
+    if not text_input.strip():
+        st.warning("Please enter a review text.")
+    else:
+        cleaned = clean_text(text_input)
+        X = vec.transform([cleaned])
+        try:
+            probs = model.predict_proba(X)[0]
 
-            if prob_fake is None:
-                pred = model.predict(X)[0]
-                # handle different label types
-                if isinstance(pred, (int, np.integer)):
-                    pred_label = "FAKE" if int(pred) == 0 else "Genuine"
-                else:
-                    pred_label = str(pred)
+            prob_fake = float(probs[0]) if probs.shape[0] > 1 else None
+        except Exception:
+            prob_fake = None
+
+        if prob_fake is None:
+            pred = model.predict(X)[0]
+            if isinstance(pred, (int, np.integer)):
+                pred_label = "FAKE" if int(pred) == 0 else "Genuine"
             else:
-                pred_label = "FAKE" if prob_fake >= threshold else "Genuine"
+                pred_label = str(pred)
+            st.warning("This model does not support probability scores. Only class predictions are displayed.")
+        else:
+            pred_label = "FAKE" if prob_fake >= threshold else "Genuine"
 
-            st.markdown(f"**Prediction:** `{pred_label}`")
-            if show_probs and prob_fake is not None:
-                st.markdown(f"**Probability (fake):** `{prob_fake:.3f}`")
+        st.markdown(f"**Prediction:** `{pred_label}`")
+        if show_probs and prob_fake is not None:
+            st.markdown(f"**Probability (fake):** `{prob_fake:.3f}`")
 
 st.markdown("---")
 
-# Batch CSV
-st.header("Batch prediction (CSV)")
-st.write("Upload a CSV file containing reviews.")
+# CSV File
+st.header("Predict CSV file")
+st.write("Upload a CSV file containing reviews:")
 uploaded = st.file_uploader("Upload CSV", type=["csv"])
 
 if uploaded is not None:
@@ -175,14 +162,13 @@ if uploaded is not None:
         st.error(f"Could not read uploaded CSV: {e}")
         st.stop()
 
-    # auto-detect text column
     text_candidates = [c for c in df.columns if any(k in c.lower() for k in ("review", "text", "comment", "message"))]
     st.info(
         "The app will try to auto-detect the column containing review text\n\n"
         "If auto-detection is wrong or multiple text columns exist, please select your review column from the dropdown below."
     )
     if text_candidates:
-        default_col = text_candidates[0]
+        default_col = text_candidates[0] #if multiple text column select first one
         st.write(f"Auto-detected text column: **{default_col}**")
         text_col = st.selectbox("Select text column", df.columns, index=list(df.columns).index(default_col))
     else:
@@ -190,34 +176,33 @@ if uploaded is not None:
     st.info("Please ensure the selected column contains **REVIEW TEXT**. Wrong selection will cause incorrect results.")
 
     if st.button("Run batch prediction"):
+        if not hasattr(model, "predict_proba"):
+            st.warning("This model does not support probability scores. Only class predictions are displayed.")
         df["cleaned_text"] = df[text_col].astype(str).map(clean_text)
         X = vec.transform(df["cleaned_text"])
 
         try:
-            probs = model.predict_proba(X)[:,0]  # probability of class '1' (fake)
-            df["prob_fake"] = probs
+            probs = model.predict_proba(X)[:,0]  
+            df["probability(fake)"] = probs
             df["pred"] = np.where(df["prob_fake"] >= threshold, "FAKE", "Genuine")
         except Exception:
             preds = model.predict(X)
-            # convert preds to readable labels
-            df["pred"] = [("FAKE" if (str(p).lower() in ("1","true","fake")) or (isinstance(p,(int,np.integer)) and int(p)==1) else "Genuine") for p in preds]
-            df["prob_fake"] = np.nan
+            df["pred"] = [("FAKE" if (isinstance(p, (int, np.integer)) and int(p) == 0) or (str(p).strip().lower() in ("0", "cg", "fake")) else "Genuine") for p in preds]
+            df["probability(fake)"] = np.nan
 
-        st.success("Done — showing top rows:")
-        st.dataframe(df[[text_col, "pred", "prob_fake"]].head(300))
+        st.success("Completed — showing top rows:")
+        st.dataframe(df[[text_col, "pred", "probability(fake)"]].head(300))
 
         csv_out = df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download predictions CSV", csv_out, file_name="predictions.csv", mime="text/csv")
+        st.download_button("Download predictions CSV", csv_out, file_name="ReviewClassifier_AI_predictions.csv", mime="text/csv")
 
 st.markdown("---")
 st.markdown("""
 <style>
-/* REMOVE STREAMLIT DEFAULT BOTTOM SPACE */
 .block-container {
     padding-bottom: 0px !important;
 }
 
-/* NORMAL FOOTER */
 .footer {
     width: 100%;
     background: #0e1117;
@@ -236,7 +221,6 @@ st.markdown("""
     filter: brightness(0) invert(1);
 }           
 
-/* LINKS */
 .footer a {
     color: #00c3ff;
     text-decoration: none;
@@ -250,7 +234,7 @@ st.markdown("""
 
 <div class="footer">
     © 2025 ReviewClassifier AI • All Rights Reserved<br>
-    Built by <strong>Aswin MS</strong><br>
+    Built by <strong>Aswin M S</strong><br>
      <span style="font-size:12px;">Predictions may not be 100% accurate.</span><br>
     Contact me: <a href="mailto:msaswin175@gmail.com"><img class="icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gmail.svg">Email</a> <br>
     <a href="https://github.com/Aswin-MS/Fake-Review-Prediction" target="_blank">📁 Project Repository</a> <br>
