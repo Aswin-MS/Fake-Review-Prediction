@@ -5,22 +5,46 @@ import numpy as np
 import pickle
 import re
 import os
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+import string
+nltk.download('punkt')
+nltk.download('stopwords')
+ps = PorterStemmer()
 
-st.set_page_config(page_title="Fake Review Detector", layout="centered")
+st.set_page_config(page_title="Fake Review Detector", layout="wide")
 
-# ------------------- Preprocessing -------------------
-# IMPORTANT: make this match your notebook preprocessing exactly.
+#Preprocessing
+
 def clean_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
     text = text.lower()
-    text = re.sub(r'http\S+|www\.\S+', '', text)        # remove urls
-    text = re.sub(r'\@\w+|\#\w+', '', text)             # remove mentions/hashtags
-    text = re.sub(r'[^a-z\s]', ' ', text)               # keep letters and spaces only
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+    text = nltk.word_tokenize(text)
+    
+    y = []
+    for i in text:
+        if i.isalnum():
+            y.append(i)
+    
+    text = y[:]
+    y.clear()
+    
+    for i in text:
+        if i not in stopwords.words('english') and i not in string.punctuation:
+            y.append(i)
+            
+    text = y[:]
+    y.clear()
+    
+    for i in text:
+        y.append(ps.stem(i))
+    
+            
+    return " ".join(y)
 
-# ------------------- Load artifacts -------------------
+#Load pickle files
 @st.cache_resource
 def load_artifacts(vec_path="models/vectorizer.pkl", model_path="models/model.pkl"):
     if not os.path.exists(vec_path) or not os.path.exists(model_path):
@@ -36,7 +60,7 @@ except Exception as e:
     st.stop()
 
 # ------------------- UI -------------------
-st.title("🕵️ Fake Review Detector")
+st.title("ReviewClassifier AI")
 st.write("Paste a review or upload a CSV to classify reviews as **FAKE** or **Genuine**.")
 
 # sidebar controls
