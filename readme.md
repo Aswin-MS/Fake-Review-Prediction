@@ -14,7 +14,7 @@ Built using **Python, Scikit-Learn, TF-IDF, Voting Classifier, and Streamlit**.
 ## 📂 **Project Repository**
 
 Source code:
-🔗 [https://github.com/Aswin-MS/Fake-Review-Prediction](Code)
+🔗 [Code](https://github.com/Aswin-MS/Fake-Review-Prediction)
 
 ---
 
@@ -214,7 +214,8 @@ Feel free to open issues for suggestions or improvements.
 
 ## 📄 **License**
 
-MIT License (or whichever you choose)
+This project is licensed under the **MIT License**.  
+See the [LICENSE](./LICENSE) file for details.
 
 ---
 
@@ -228,13 +229,4 @@ MIT License (or whichever you choose)
 
 ---
 
-# 🎉 Your README.md is ready!
 
-If you want:
-
-✅ A shorter README
-✅ A more visual README with shields/badges
-✅ Markdown tables for features
-✅ A version with emojis removed
-
-Just tell me — I can generate any version you prefer.
