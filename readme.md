@@ -130,7 +130,8 @@ pip install -r requirements.txt
 ### **3. Run the App**
 
 ```bash
-streamlit run app/app.py
+cd app
+streamlit run app.py
 ```
 
 ---
@@ -160,16 +161,10 @@ Set how strict the system should be:
 
 ## 🖼️ **App Interface (Screenshots)**
 
-(Add screenshots here)
-
-Example sections:
-
-* Home Screen / Title
-* Single Review Input
-* Threshold Slider
-* Results
-* Batch CSV Upload
-* Predictions Table
+![Home Page](screenshots/home1.png)
+![Prediction Result](screenshots/single.png)
+![CSV Upload](screenshots/batch1.png)
+![CSV Result](screenshots/batch2.png)
 
 ---
 
